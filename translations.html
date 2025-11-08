@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>translations</title>
+  <style>
+    body {
+      margin: 0; background: #101010; color: #fff;
+      font-family: system-ui, Arial, sans-serif; min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    #main { flex: 1; display:flex; flex-direction:column; justify-content:center; align-items:center;}
+    .hidden { display:none; }
+    .lang-btn, .scene-btn {
+      padding: 18px 36px; margin: 16px; border:none; border-radius:14px; font-size:1.3em;
+      background:#222; color:#fff; cursor:pointer; transition:background 0.2s;
+    }
+    .lang-btn.selected { background:#444;text-shadow:0 1px 12px #fff4; }
+    .scene-btn { min-width:130px; display:flex; flex-direction:column; align-items:center; }
+    .scene-btn .icon { font-size:2em; margin-bottom:4px; }
+    .scenes-grid {
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+      gap: 18px; padding: 10px 5vw; width:100%; max-width:600px; margin-top:2em;
+    }
+    .parallels {font-size:0.89em; color:#bbb; margin-top:4px;}
+    .dialogue-header {
+      padding:18px 0 8px 0; font-size: 1.2em; color: #ddd;
+      border-bottom: 1.5px solid #222; text-align:center;
+      width:100%; background: #181818;
+    }
+    .dialogues { width:100%; max-width:620px; margin:auto; padding:18px 3vw; }
+    .line-card {
+      background: #181818; border-radius:10px; margin-bottom:13px; padding:14px 11px;
+      box-shadow:0 2px 10px #0005;
+      font-size:1.04em; line-height:1.55;
+    }
+    .char { font-weight:bold; color:#ffe082; }
+    .direction { color:#8ce0e0; font-style:italic; font-size:0.98em; }
+    .footer {padding:12px 0 9px 0; text-align:center; color:#aaa; font-size:0.96em;}
+    .controls {margin-top:14px;}
+    .ctrl-btn {
+      font-size:1em; padding:7px 14px; border:none; border-radius:6px; 
+      margin:5px; background:#343a40; color:#fff; cursor:pointer; 
+    }
+    .ctrl-btn.selected {background:#6c757d;}
+    @media (max-width:570px) {
+      .scenes-grid {grid-template-columns:1fr 1fr;}
+      .dialogues {padding:10px 2vw;}
+    }
+  </style>
+</head>
+<body>
+  <div id="main">
+    <!-- Language selection -->
+    <div id="langsel">
+      <h1>JUSTITIA! Eco Criminals</h1>
+      <div>
+        <button class="lang-btn" data-lang="de">🇦🇹 Deutsch</button>
+        <button class="lang-btn" data-lang="en">🇬🇧 English</button>
+      </div>
+    </div>
+    <!-- Scene selection -->
+    <div id="scenesel" class="hidden">
+      <h2 id="scene-head">Wähle eine Szene</h2>
+      <div class="scenes-grid" id="scenelist"></div>
+      <div class="controls">
+        <button class="ctrl-btn" onclick="resetLang()">&lt; Sprache ändern</button>
+      </div>
+    </div>
+    <!-- Dialogue view -->
+    <div id="dlgview" class="hidden">
+      <div class="dialogue-header"></div>
+      <div class="dialogues"></div>
+      <div class="controls">
+        <button class="ctrl-btn" onclick="showScenes()">&lt; Szenen/Scenes</button>
+        <button class="ctrl-btn" onclick="switchLang()"></button>
+        <button class="ctrl-btn" onclick="fontDown()">A-</button>
+        <button class="ctrl-btn" onclick="fontUp()">A+</button>
+      </div>
+      <div class="footer"><span id="parallelinfo"></span></div>
+    </div>
+  </div>
+<script>
+const LANGS = [
+ { code:"de", name:"Deutsch", flag:"🇦🇹" },
+ { code:"en", name:"English", flag:"🇬🇧" }
+];
+const scenes = [
+  { id:"s1_1", act:1, nr:1, icon:"🏰",
+    titleDe:"Akt 1 - Szene 1", titleEn:"Act 1 - Scene 1", 
+    parallelWith:["s1_2"],
+    dialogues:[
+      {character:"ANNA", de:"Guten Tag. Ich bin endlich angekommen.", en:"Good day. I've finally arrived."},
+      {character:"MARKUS", de:"Willkommen! Es freut mich, dich zu sehen.", en:"Welcome! I'm glad to see you."},
+      {character:"ANNA", de:"Die Reise war furchtbar lang.", en:"The journey was terribly long."},
+      {character:"MARKUS", de:"Aber du bist jetzt hier. Das ist das Wichtigste.", en:"But you're here now. That's what matters."},
+      {character:"ANNA", de:"[schaut sich um] Was ist mit den anderen geschehen?", en:"[looks around] What happened to the others?"},
+      {character:"MARKUS", de:"[schweigt einen Moment] Das erzähle ich dir später.", en:"[pauses] I'll tell you later about that."}
+    ]},
+  { id:"s1_2", act:1, nr:2, icon:"🌲",
+    titleDe:"Akt 1 - Szene 2", titleEn:"Act 1 - Scene 2", 
+    parallelWith:["s1_1","s1_3"],
+    dialogues:[
+      {character:"FRIEDRICH", de:"Wir sind beobachtet worden.", en:"We've been watched."},
+      {character:"HELENA", de:"Von wem? Der Gendarmerie?", en:"By whom? The police?"},
+      {character:"FRIEDRICH", de:"Schlimmer noch. Von seinen Männern.", en:"Worse. By his men."},
+      {character:"HELENA", de:"[nervös] Das bedeutet, wir müssen fliehen.", en:"[nervous] That means we have to run."},
+      {character:"FRIEDRICH", de:"Noch nicht. Erst müssen wir die anderen warnen.", en:"Not yet. First we must warn the others."},
+      {character:"HELENA", de:"Und wenn es bereits zu spät ist?", en:"What if it's already too late?"}
+    ]},
+  { id:"s1_3", act:1, nr:3, icon:"🎭",
+    titleDe:"Akt 1 - Szene 3", titleEn:"Act 1 - Scene 3", 
+    parallelWith:["s1_2"],
+    dialogues:[
+      {character:"SOPHIA", de:"Der König wird bald ankommen.", en:"The King will arrive soon."},
+      {character:"GRAF VON MORTON", de:"Das müssen wir verhindern!", en:"We must prevent that!"},
+      {character:"SOPHIA", de:"[ernst] Aber wie?", en:"[serious] But how?"},
+      {character:"GRAF VON MORTON", de:"Mit List und Mut, meine Liebe.", en:"With cunning and courage, my dear."},
+      {character:"SOPHIA", de:"[flüsternd] Ich vertraue dir.", en:"[whispering] I trust you."},
+      {character:"GRAF VON MORTON", de:"[nimmt ihre Hand] Das genügt mir.", en:"[takes her hand] That is enough for me."}
+    ]},
+  { id:"s2_1", act:2, nr:1, icon:"🏛️",
+    titleDe:"Akt 2 - Szene 1", titleEn:"Act 2 - Scene 1", 
+    parallelWith:[],
+    dialogues:[
+      {character:"ANNA", de:"Wir sind angekommen. Es ist vorbei.", en:"We've arrived. It's over."},
+      {character:"MARKUS", de:"Nein, meine Liebe. Es fängt erst an.", en:"No, my dear. It's only beginning."},
+      {character:"ANNA", de:"[verwirrt] Was meinst du?", en:"[confused] What do you mean?"},
+      {character:"MARKUS", de:"Dies ist nur eine Zwischenstation. Unser Ziel ist noch ferner.", en:"This is just a stop. Our destination is still far away."}
+    ]},
+  { id:"s2_2", act:2, nr:2, icon:"⚔️",
+    titleDe:"Akt 2 - Szene 2", titleEn:"Act 2 - Scene 2", 
+    parallelWith:[],
+    dialogues:[
+      {character:"FRIEDRICH", de:"Sie sind hier. Sie sind überall.", en:"They're here. They're everywhere."},
+      {character:"HELENA", de:"[lässt sich auf eine Bank fallen] Es ist hoffnungslos.", en:"[collapses onto a bench] It's hopeless."},
+      {character:"FRIEDRICH", de:"Nein! Nicht solange wir leben!", en:"No! Not while we live!"},
+      {character:"HELENA", de:"[sieht ihn an] Vielleicht hast du recht.", en:"[looks at him] Perhaps you're right."}
+    ]}
+];
+// -------- State
+let state = {lang:null, scene:null, font:1}; // font is scale, 1.0 = default
+
+// --- UI logic
+const q = s => document.querySelector(s);
+const langsel = q("#langsel"), scenesel = q("#scenesel"), dlgview = q("#dlgview");
+const scenelist = q("#scenelist"), dlgBox = q(".dialogues");
+function showLangSel() {
+  langsel.classList.remove("hidden"); scenesel.classList.add("hidden"); dlgview.classList.add("hidden");
+  qAll(".lang-btn").forEach(x=>x.classList.remove("selected"));
+  state= {lang:null,scene:null,font:1};
+}
+function setLang(l) {
+  state.lang=l; localStorage.setItem("theaterLang",l);
+  langsel.classList.add("hidden");
+  scenesel.classList.remove("hidden");
+  renderScenes();
+  qAll(".lang-btn").forEach(btn=>{btn.classList.toggle("selected",btn.dataset.lang===l);});
+  q("#scene-head").innerText = (l==="de")? "Wähle eine Szene" : "Select a Scene";
+}
+function renderScenes() {
+  // List of scenes
+  scenelist.innerHTML = scenes.map((sc,i)=>{
+    let p=sc.parallelWith, icon = sc.icon||"🎬";
+    let title = state.lang==="de"?sc.titleDe:sc.titleEn;
+    let parallels = (p.length)
+      ? `<div class="parallels">${state.lang==="de"?"Parallel mit":"Parallel with"} `
+         + p.map(id=>sceneTitle(id)).join(", ")+ "</div>" : "";
+    return `<button class="scene-btn" onclick="showDlg('${sc.id}')" title="${title}"><span class="icon">${icon}</span>
+      ${title}${parallels}</button>`;
+  }).join("");
+}
+function sceneTitle(id) {
+  let s = scenes.find(s=>s.id===id);
+  return s ? (state.lang==="de"?s.titleDe:s.titleEn) : (id||"");
+}
+function showDlg(id) {
+  state.scene = id; dlgview.classList.remove("hidden"); scenesel.classList.add("hidden");
+  let scene = scenes.find(s=>s.id===id);
+  let t = state.lang==="de"?scene.titleDe:scene.titleEn;
+  q(".dialogue-header").innerText = t;
+  renderDlg();
+  // Parallel info
+  let info = "";
+  if(scene.parallelWith.length) {
+    info = (state.lang==="de"?"Läuft parallel mit ":"Parallel with ") 
+     + scene.parallelWith.map(sceneTitle).join(", ");
+  }
+  q("#parallelinfo").innerText=info;
+}
+function renderDlg() {
+  let sc = scenes.find(s=>s.id===state.scene);
+  let fontSz = (16*state.font).toFixed(1);
+  dlgBox.style.fontSize = fontSz+"px";
+  dlgBox.innerHTML = sc.dialogues.map(d=>{
+    let txt = d[state.lang]||"";
+    let isDir = txt.startsWith("[")&&txt.endsWith("]");
+    return `<div class="line-card">
+      <span class="char">${d.character}</span><br>
+      <span class="${isDir?"direction":""}">
+        ${escapeHtml(txt)}
+      </span></div>`;
+  }).join("");
+  q(".ctrl-btn[onclick='switchLang()']").innerText = state.lang==="de"? "🇬🇧 English" : "🇩🇪 Deutsch";
+}
+function qAll(sel) { return [...document.querySelectorAll(sel)]; }
+function switchLang() {
+  state.lang = state.lang==="de"?"en":"de"; localStorage.setItem("theaterLang",state.lang);
+  // keep in same view
+  if(state.scene) renderDlg(); else renderScenes();
+  // update header texts
+  if (!state.scene) q("#scene-head").innerText = (state.lang==="de")? "Wähle eine Szene" : "Select a Scene";
+}
+function resetLang() { showLangSel(); }
+function showScenes() { dlgview.classList.add("hidden"); scenesel.classList.remove("hidden"); }
+function fontUp() { state.font = Math.min(2,state.font+0.1); renderDlg(); }
+function fontDown() { state.font = Math.max(0.8,state.font-0.1); renderDlg(); }
+function escapeHtml(txt) {
+  return txt.replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+// --- Event Wiring
+window.showDlg = showDlg; // export for inline onClick
+window.switchLang = switchLang; window.resetLang = resetLang; window.showScenes = showScenes;
+window.fontUp = fontUp; window.fontDown = fontDown;
+document.addEventListener("DOMContentLoaded",()=>{
+  // Restore from localStorage
+  let l = localStorage.getItem("theaterLang");
+  if(LANGS.some(x=>x.code===l)) setLang(l);
+  else showLangSel();
+  qAll(".lang-btn").forEach(btn=>{
+    btn.onclick=()=>setLang(btn.dataset.lang);
+  });
+});
+</script>
+</body>
+</html>
